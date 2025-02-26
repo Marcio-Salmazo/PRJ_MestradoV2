@@ -1,14 +1,15 @@
 import os  # Módulo de manipulação do sistema operacional, permitindo a interação com o OS
-import sys  # biblioteca para controlar a execução do programa
 
 import vlc  # Importa o VLC media player, necessário para a execução do video
 from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QKeySequence, QFont
 from PyQt5.QtMultimediaWidgets import QVideoWidget
 from PyQt5.QtWidgets import QMainWindow, QPushButton, QSlider, QWidget, QVBoxLayout, \
-    QHBoxLayout, QLabel, QShortcut, QApplication, QFileDialog
+    QHBoxLayout, QLabel, QShortcut, QApplication
 
+from KeyMapper import KeyMapper
 from Model import Model
+from SaveMenu import SaveMenu
 
 
 # PyQt5.QtWidgets contém os elemenos da interface gráfica, como botões, janelas e sliders
@@ -51,6 +52,7 @@ class VideoPlayer(QMainWindow):
         # Herda os métodos da classe pai (QMainWindow)
         super().__init__()
 
+        self.map_window = None
         self.setWindowTitle("Video Player com VLC")  # Define o título da janela do player
         self.setGeometry(100, 100, 900, 500)  # Define a geometria da janela
 
@@ -90,7 +92,7 @@ class VideoPlayer(QMainWindow):
         # associar o VLC à janela criada.
 
         self.instance = vlc.Instance()  # cria uma instância do framework do VLC
-        self.media_player = self.instance.media_player_new()  # cria um novo player de vídeo a partir da instância do vlc
+        self.media_player = self.instance.media_player_new()  # cria um novo player de vídeo a partir da instância
         self.media_player.set_hwnd(int(self.video_widget.winId()))  # Vincula o player do VLC à janela criada
 
         # -------------------------------------------------------------------------------------------------------------
@@ -253,8 +255,14 @@ class VideoPlayer(QMainWindow):
         self.save_md_shortcut.activated.connect(lambda: self.capture_frame("Muita dor", self.video_name))
 
         # Variável de nome do arquivo de vídeo
+        # e do caminho da imagem carregada
 
         self.video_name = ""
+        self.file_name = None
+
+        # self.event_manager = self.media_player.event_manager()
+        # self.event_manager.event_attach(vlc.EventType.MediaPlayerEndReached, self.reload_video)
+        self.timer.timeout.connect(self.check_time_before_end)
 
     # -------------------------------------------------------------------------------------------------------------
     # -------------------------------------------------------------------------------------------------------------
@@ -265,15 +273,42 @@ class VideoPlayer(QMainWindow):
     def open_file(self):
 
         model = Model()
-        file_name = model.open_video(parent=self)
+        self.file_name = model.open_video(parent=self)
 
-        if file_name:
-            media = self.instance.media_new(file_name)  # Cria um objeto de mídia a parir da instância do  VLC
-            self.media_player.set_media(media)  # O objeto de mídia (media) é atribuído ao player de vídeo
-            self.media_player.play()  # O vlc inicia a reprodução do vídeo carregado
-            self.timer.start()  # Inicia o timer da barra de progresso
-            self.video_name = os.path.basename(file_name)
+        if self.file_name:
+            self.start_video(self.file_name)
+            self.video_name = os.path.basename(self.file_name)
             self.video_name = self.video_name[:-4]
+
+        print("Valor de file name_name: ", self.file_name)
+
+    def start_video(self, file_name):
+
+        media = self.instance.media_new(file_name)  # Cria um objeto de mídia a parir da instância do  VLC
+        self.media_player.set_media(media)  # O objeto de mídia (media) é atribuído ao player de vídeo
+        self.media_player.audio_set_mute(True)  # Tira o audio do vídeo
+        self.media_player.play()  # O vlc inicia a reprodução do vídeo carregado
+        self.timer.start()  # Inicia o timer da barra de progresso
+
+        # Iniciar o timer de atualização do slider
+        self.update_slider()
+        self.timer.timeout.connect(self.update_slider)
+        self.timer.start(1000)  # Atualiza a cada segundo
+
+    def check_time_before_end(self):
+        """Verifica o tempo restante e chama uma função 1 segundo antes do vídeo encerrar."""
+        if self.media_player is not None:
+            duration = self.media_player.get_length()  # Duração total do vídeo
+            current_time = self.media_player.get_time()  # Tempo atual do vídeo
+
+            # Verifica se falta 1 segundo para o fim do vídeo
+            if duration - current_time <= 500:  # 1000 ms = 1 segundo
+                self.timer.stop()  # Para o timer
+                self.reload_video()  # Chama a função desejada
+
+    def reload_video(self):
+
+        self.start_video(self.file_name)
 
     def toggle_play_pause(self):
 
@@ -382,17 +417,18 @@ class VideoPlayer(QMainWindow):
 
     def open_save_menu(self):
 
-        from SaveMenu import SaveMenu
         menu = SaveMenu(self.video_name)
         menu.exec_()
 
     def key_mapping(self):
 
-        from KeyMapper import KeyMapper
-        map_window = KeyMapper()
-        map_window.exec_()
+        if not hasattr(self, "map_window") or self.map_window is None:
+            self.map_window = KeyMapper()  # Criar um atributo da classe principal
 
-        self.keys = map_window.keyValues
+        self.map_window.setModal(True)  # Bloqueia a interação na principal
+        self.map_window.exec_()  # Executar como diálogo modal
+
+        self.keys = self.map_window.keyValues
 
         # Recriando os atalhos
         self.open_button_shortcut.setKey(QKeySequence(self.keys[0]))

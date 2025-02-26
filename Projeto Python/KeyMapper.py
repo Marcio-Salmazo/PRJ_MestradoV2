@@ -28,7 +28,7 @@ class KeyMapper(QDialog):
         self.dialog_layout.addWidget(self.main_widget)
 
         # Valores das teclas mapeadas
-        self.keyValues = []
+        self.keyValues = ["o", " ", "d", "a", "q", "j", "l", "k"]
 
         # Criando os campos de entrada com seus respectivos rótulos
         # self.input1_layout = QHBoxLayout() -> Layout horizontal para acomodar o label e o campo de entrada lado-a-lado
@@ -114,14 +114,14 @@ class KeyMapper(QDialog):
 
         # Criação dos botões
         self.confirm_button = QPushButton("Confirmar")
-        self.close_button = QPushButton("Fechar")
+        self.close_button = QPushButton("Fechar", self)
 
         # Adicionando os botões ao layout
         self.main_layout.addWidget(self.confirm_button)
         self.main_layout.addWidget(self.close_button)
 
         # Conectando os botões às funções
-        self.close_button.clicked.connect(self.close)
+        self.close_button.clicked.connect(self.reject)
         self.confirm_button.clicked.connect(self.confirm_action)
 
     def confirm_action(self):
@@ -130,4 +130,4 @@ class KeyMapper(QDialog):
         self.keyValues = [self.input1.text(), self.input2.text(), self.input3.text(), self.input4.text(), self.input5.text(), self.input6.text(),
                           self.input7.text(), self.input8.text()]
 
-        self.close()
+        self.accept()
