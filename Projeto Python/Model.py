@@ -66,3 +66,18 @@ class Model:
         # validado, ele será apenas ignorado
         return image_path.lower().endswith(('.png', '.jpg'))
 
+    def check_existence(self, frame_path):
+
+        folders = ["Indolor", "Pouca dor", "Muita dor"]
+
+        for dirs in folders:
+
+            if not os.path.exists(dirs):
+                continue
+
+            for img_file in os.listdir(dirs):
+
+                if img_file in frame_path:
+                    print("image file", img_file)
+                    os.remove(f"{dirs}\{img_file}")
+

@@ -364,6 +364,8 @@ class VideoPlayer(QMainWindow):
         fps = self.media_player.get_fps()  # taxa de quadros do vídeo
         frame_path = model.frame_path_generator(fps, current_time, folder_name, video_name)
 
+        model.check_existence(frame_path)
+
         # Função para extrair um snapshot do frame atual
         # num -> Índice da janela de vídeo (sempre 0 se houver apenas um vídeo).
         # file_path -> Caminho onde a imagem será salva
