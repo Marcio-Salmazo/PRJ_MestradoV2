@@ -1,6 +1,7 @@
-import os  # Módulo de manipulação do sistema operacional, permitindo a interação com o OS
+import os
+import sys
+import ctypes
 
-import vlc  # Importa o VLC media player, necessário para a execução do video
 from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QKeySequence, QFont
 from PyQt5.QtMultimediaWidgets import QVideoWidget
@@ -91,7 +92,36 @@ class VideoPlayer(QMainWindow):
         # da classe VideoWindow() criada préviamente, além de
         # associar o VLC à janela criada.
 
-        self.instance = vlc.Instance()  # cria uma instância do framework do VLC
+        if getattr(sys, 'frozen', False):
+            BASE_DIR = sys._MEIPASS  # Diretório temporário do PyInstaller
+            sys.stdout = open(os.devnull, 'w')  # Oculta a saída no terminal
+            sys.stderr = open(os.devnull, 'w')  # Oculta os erros
+        else:
+            BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+        # Adiciona a pasta do VLC ao PATH
+        os.environ["PATH"] += os.pathsep + BASE_DIR
+
+        # Define manualmente o caminho dos plugins do VLC
+        vlc_plugin_path = os.path.join(BASE_DIR, "plugins")
+        os.environ["VLC_PLUGIN_PATH"] = vlc_plugin_path
+
+        # Caminhos das DLLs
+        libvlc_path = os.path.join(BASE_DIR, "libvlc.dll")
+        libvlccore_path = os.path.join(BASE_DIR, "libvlccore.dll")
+
+        # Carrega as DLLs do VLC manualmente
+        ctypes.CDLL(libvlccore_path)
+        ctypes.CDLL(libvlc_path)
+
+        # Agora podemos importar o módulo vlc
+        import vlc
+
+        # Testa se o VLC foi carregado corretamente
+        print("Versão do VLC:", vlc.libvlc_get_version())
+
+        self.instance = vlc.Instance(f"--plugin-path={BASE_DIR}")  # cria uma instância do framework do VLC
+        print(self.instance)
         self.media_player = self.instance.media_player_new()  # cria um novo player de vídeo a partir da instância
         self.media_player.set_hwnd(int(self.video_widget.winId()))  # Vincula o player do VLC à janela criada
 
@@ -280,7 +310,7 @@ class VideoPlayer(QMainWindow):
             self.video_name = os.path.basename(self.file_name)
             self.video_name = self.video_name[:-4]
 
-        print("Valor de file name_name: ", self.file_name)
+        # print("Valor de file name_name: ", self.file_name)
 
     def start_video(self, file_name):
 
