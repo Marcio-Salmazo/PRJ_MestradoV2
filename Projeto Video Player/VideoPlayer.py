@@ -195,13 +195,6 @@ class VideoPlayer(QMainWindow):
         self.control_layout.addWidget(self.capture_frame_btn)
         # -----------
 
-        '''
-        # O layout horizontal deve ser inserido em ordem junto com seus widgets
-        self.control_layout.addLayout(self.hor_layout2)
-        self.hor_layout2.addWidget(self.save_ind)
-        self.hor_layout2.addWidget(self.save_pd)
-        self.hor_layout2.addWidget(self.save_md)
-        '''
         self.control_layout.addWidget(self.open_button)
 
         # Inserção de labels para as teclas de atalho
@@ -215,7 +208,7 @@ class VideoPlayer(QMainWindow):
         self.keys_label.setTextFormat(Qt.RichText)
 
         # Valor das teclas de atalho
-        self.keys = ["o", " ", "d", "a", "q", "j", "l", "k"]
+        self.keys = ["o", " ", "d", "a", "q"]
 
         self.keys_label.setText(
             "<br>"
@@ -226,9 +219,6 @@ class VideoPlayer(QMainWindow):
             f"Avançar frame: <b>{self.keys[2]}</b><br>"
             f"Retroceder frame: <b>{self.keys[3]}</b><br>"
             f"Sair do programa: <b>{self.keys[4]}</b><br>"
-            f"Salvar frame como 'indolor': <b>{self.keys[5]}</b><br>"
-            f"Salvar frame como 'Pouca dor': <b>{self.keys[7]}</b><br>"
-            f"Salvar frame como 'Muita dor': <b>{self.keys[6]}</b><br>"
             "<br>"
         )
         self.control_layout.addWidget(self.keys_label)
@@ -253,24 +243,6 @@ class VideoPlayer(QMainWindow):
         # -----------------
         self.capture_frame_btn.clicked.connect(self.frame_capture)
         # -----------------
-
-        '''
-        # Em Python, uma expressão lambda é uma função anônima de uma única linha.
-        # Ela é usada para definir funções curtas sem precisar usar def.
-        # A sintaxe base para uma função lambda é "lambda argumentos: expressão"
-
-        # No caso do trecho a baico cada botão precisa chamar a função capture_frame() com um nome de pasta diferente.
-        # Contudo o connect() do PyQt exige uma função sem argumentos, por isso, O lambda cria uma função anônima
-        # temporária que será executada somente quando o botão for clicado.
-
-        # Podemos dizer que lambda: self.capture_frame("Indolor") seria o mesmo que:
-        # def anonimous():
-        #   self.capture_frame("indolor")
-
-        self.save_ind.clicked.connect(lambda: self.capture_frame("Indolor", self.video_name))
-        self.save_pd.clicked.connect(lambda: self.capture_frame("Pouca dor", self.video_name))
-        self.save_md.clicked.connect(lambda: self.capture_frame("Muita dor", self.video_name))
-        '''
 
         self.save_menu.clicked.connect(self.open_save_menu)
 
@@ -298,17 +270,6 @@ class VideoPlayer(QMainWindow):
 
         self.exit_shortcut = QShortcut(QKeySequence(self.keys[4]), self)
         self.exit_shortcut.activated.connect(self.exit_program)
-
-        '''
-        self.save_ind_shortcut = QShortcut(QKeySequence(self.keys[5]), self)
-        self.save_ind_shortcut.activated.connect(lambda: self.capture_frame("Indolor", self.video_name))
-
-        self.save_pd_shortcut = QShortcut(QKeySequence(self.keys[7]), self)
-        self.save_pd_shortcut.activated.connect(lambda: self.capture_frame("Pouca dor", self.video_name))
-
-        self.save_md_shortcut = QShortcut(QKeySequence(self.keys[6]), self)
-        self.save_md_shortcut.activated.connect(lambda: self.capture_frame("Muita dor", self.video_name))
-        '''
 
         # Variável de nome do arquivo de vídeo
         # e do caminho da imagem carregada
@@ -402,7 +363,7 @@ class VideoPlayer(QMainWindow):
             self.media_player.set_time(new_time)  # Define o novo tempo
 
     # --------------------------------------
-    def frame_capture(self, video_name):
+    def frame_capture(self):
 
         # Pausa o vídeo, caso ele já não esteja pausado
         if self.media_player.is_playing():
@@ -416,7 +377,7 @@ class VideoPlayer(QMainWindow):
         fps = self.media_player.get_fps()  # taxa de quadros do vídeo
         frame = self.get_frame()
 
-        capture = FrameCapture(video_name, current_time, fps, frame)
+        capture = FrameCapture(self.video_name, current_time, fps, frame)
         capture.exec_()
 
     def get_frame(self):
@@ -445,38 +406,6 @@ class VideoPlayer(QMainWindow):
         else:
             print("Erro ao capturar o frame.")
             return None
-
-    # --------------------------------------
-
-    '''
-    def capture_frame(self, folder_name, video_name):
-
-        model = Model()
-
-        # Pausa o vídeo, caso ele já não esteja pausado
-        if self.media_player.is_playing():
-            self.media_player.pause()
-
-        # Criação das pastas
-        model.manage_dirs(folder_name)
-
-        # O VLC não tem uma função pronta para retornar o numero do frame atual, contudo é possível obter este valor
-        # por meio do valor de tempo do frame atual e pela taxa de quadros do vídeo (FPS), com isso temos a equação:
-        # frame atual = tempo atual (ms)/1000 * taxa de quadros
-
-        current_time = self.media_player.get_time()  # tempo do frame atual
-        fps = self.media_player.get_fps()  # taxa de quadros do vídeo
-        frame_path = model.frame_path_generator(fps, current_time, folder_name, video_name)
-
-        model.check_existence(frame_path)
-
-        # Função para extrair um snapshot do frame atual
-        # num -> Índice da janela de vídeo (sempre 0 se houver apenas um vídeo).
-        # file_path -> Caminho onde a imagem será salva
-        # width -> Largura da imagem. Se 0, mantém o tamanho original do vídeo.
-        # height -> Altura da imagem. Se 0, mantém o tamanho original do vídeo.
-        self.media_player.video_take_snapshot(0, frame_path, 0, 0)  # salva o snapshot do vídeo
-    '''
 
     def change_speed(self):
 
@@ -538,28 +467,22 @@ class VideoPlayer(QMainWindow):
         self.keys = self.map_window.keyValues
 
         # Recriando os atalhos
-        self.open_button_shortcut.setKey(QKeySequence(self.keys[0]))
-        self.play_button_shortcut.setKey(QKeySequence(self.keys[1]))
-        self.next_frame_shortcut.setKey(QKeySequence(self.keys[2]))
-        self.prev_frame_shortcut.setKey(QKeySequence(self.keys[3]))
-        self.exit_shortcut.setKey(QKeySequence(self.keys[4]))
-        self.save_ind_shortcut.setKey(QKeySequence(self.keys[5]))
-        self.save_pd_shortcut.setKey(QKeySequence(self.keys[7]))
-        self.save_md_shortcut.setKey(QKeySequence(self.keys[6]))
+        self.open_button_shortcut.setKey(QKeySequence(self.keys[4]))
+        self.play_button_shortcut.setKey(QKeySequence(self.keys[0]))
+        self.next_frame_shortcut.setKey(QKeySequence(self.keys[1]))
+        self.prev_frame_shortcut.setKey(QKeySequence(self.keys[2]))
+        self.exit_shortcut.setKey(QKeySequence(self.keys[3]))
 
         # Atualizando a exibição das teclas de atalho na label
         self.keys_label.setText(
             "<br>"
             "Teclas de atalho para os controles<br>"
             "<br>"
-            f"Abrir um arquivo de vídeo: <b>{self.keys[0]}</b><br>"
-            f"Play/Pause: <b>{self.keys[1]}</b><br>"
-            f"Avançar frame: <b>{self.keys[2]}</b><br>"
-            f"Retroceder frame: <b>{self.keys[3]}</b><br>"
-            f"Sair do programa: <b>{self.keys[4]}</b><br>"
-            f"Salvar frame como 'indolor': <b>{self.keys[5]}</b><br>"
-            f"Salvar frame como 'Pouca dor': <b>{self.keys[7]}</b><br>"
-            f"Salvar frame como 'Muita dor': <b>{self.keys[6]}</b><br>"
+            f"Abrir um arquivo de vídeo: <b>{self.keys[4]}</b><br>"
+            f"Play/Pause: <b>{self.keys[0]}</b><br>"
+            f"Avançar frame: <b>{self.keys[1]}</b><br>"
+            f"Retroceder frame: <b>{self.keys[2]}</b><br>"
+            f"Sair do programa: <b>{self.keys[3]}</b><br>"
             "<br>"
         )
 

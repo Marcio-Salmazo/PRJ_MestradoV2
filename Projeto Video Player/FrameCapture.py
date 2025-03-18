@@ -4,6 +4,8 @@ from PyQt5.QtCore import Qt, QRect
 import cv2
 import numpy as np
 
+from Model import Model
+
 
 class FrameCapture(QDialog):
 
@@ -186,4 +188,38 @@ class FrameCapture(QDialog):
         self.image_label.setPixmap(temp_pixmap)
 
     def capture_frame(self, folder_name):
-        print(f"Frame salvo na pasta {folder_name}")
+
+        model = Model()
+        model.manage_dirs(folder_name)  # Criação das pastas
+
+        # Valida se há ou não uma área de seleção bem como a existência de um frame antes de prosseguir a captura
+        if self.selection_start is None or self.selection_end is None or self.frame is None:
+            print("Erro: Nenhuma área selecionada para salvar.")
+            return
+
+        # Obtém as coordenadas da seleção
+        x1, y1 = self.selection_start.x(), self.selection_start.y()
+        x2, y2 = self.selection_end.x(), self.selection_end.y()
+
+        # Garantir que os valores estão na ordem correta (esquerda para direita, cima para baixo)
+        # Dessa forma é levado em consideração qualquer orientação
+        x1, x2 = min(x1, x2), max(x1, x2)
+        y1, y2 = min(y1, y2), max(y1, y2)
+
+        # Recortar a região selecionada na imagem original
+        # Aqui é armazenado a imagem do frame nos pontos x1 -> x2 e y1 -> y2
+        selected_area = self.frame[y1:y2, x1:x2]
+
+        # Valida se a área recortada possui um tamanho válido
+        if selected_area.size == 0:
+            print("Erro: área selecionada inválida!")
+            return
+
+        # Gerar o nome do arquivo
+        frame_path = model.frame_path_generator(self.fps, self.current_time, folder_name, self.video_name)
+        model.check_existence(frame_path)
+
+        # filename = f"{self.video_name}_frame_{self.current_time:.2f}_{label}.png"
+
+        # Salvar a imagem
+        cv2.imwrite(frame_path, selected_area)

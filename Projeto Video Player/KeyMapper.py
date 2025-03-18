@@ -28,7 +28,7 @@ class KeyMapper(QDialog):
         self.dialog_layout.addWidget(self.main_widget)
 
         # Valores das teclas mapeadas
-        self.keyValues = ["o", " ", "d", "a", "q", "j", "l", "k"]
+        self.keyValues = ["o", " ", "d", "a", "q"]
 
         # Criando os campos de entrada com seus respectivos rótulos
         # self.input1_layout = QHBoxLayout() -> Layout horizontal para acomodar o label e o campo de entrada lado-a-lado
@@ -67,7 +67,7 @@ class KeyMapper(QDialog):
         self.input3_layout.addWidget(self.input3)
         self.main_layout.addLayout(self.input3_layout)
 
-        self.input4_layout = QHBoxLayout()
+        '''self.input4_layout = QHBoxLayout()
         self.input4_label = QLabel("Salvar como 'Indolor':")
         self.input4 = QLineEdit()
         self.input4.setMaxLength(1)
@@ -92,7 +92,7 @@ class KeyMapper(QDialog):
         self.input6.setAlignment(Qt.AlignCenter)
         self.input6_layout.addWidget(self.input6_label)
         self.input6_layout.addWidget(self.input6)
-        self.main_layout.addLayout(self.input6_layout)
+        self.main_layout.addLayout(self.input6_layout)'''
 
         self.input7_layout = QHBoxLayout()
         self.input7_label = QLabel("Sair do programa:")
@@ -127,7 +127,10 @@ class KeyMapper(QDialog):
     def confirm_action(self):
 
         # Obtendo os valores inseridos pelo usuário
-        self.keyValues = [self.input1.text(), self.input2.text(), self.input3.text(), self.input4.text(), self.input5.text(), self.input6.text(),
-                          self.input7.text(), self.input8.text()]
+        self.keyValues = [self.input1.text(),
+                          self.input2.text(),
+                          self.input3.text(),
+                          self.input7.text(),
+                          self.input8.text()]
 
         self.accept()
