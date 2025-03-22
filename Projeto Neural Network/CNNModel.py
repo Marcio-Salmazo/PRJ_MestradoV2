@@ -5,7 +5,7 @@ from tensorflow.keras.applications import ResNet50
 Utilização da rede ResNet pré treinada em razão de:
     * Excelente para extração de características de imagens complexas.
     * Usa "skip connections" (atalhos) para evitar o desaparecimento do gradiente, treinando redes mais profundas.
-    * Ótima para bases pequenas quando combinada com transfer learning (Menos de 10k dados).
+    * n 
 '''
 
 

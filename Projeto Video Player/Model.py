@@ -1,5 +1,7 @@
 import os
 
+import cv2
+import numpy as np
 from PyQt5.QtWidgets import QFileDialog
 
 
@@ -18,14 +20,14 @@ class Model:
         # cria o diretório para armazenar os frames (caso não exista previamente)
         os.makedirs(folder_name, exist_ok=True)
 
-    def frame_path_generator(self, fps, current_time, folder_name, video_name):
+    def frame_path_generator(self, fps, current_time, folder_name, video_name, index):
 
         if fps > 0:
             frame_number = int((current_time / 1000) * fps)
         else:
             frame_number = 'unknown'
 
-        return os.path.join(folder_name, f"frame_{frame_number}_{video_name}.png")
+        return os.path.join(folder_name, f"frame_{frame_number}_{video_name}_{index}.png")
 
     def open_video(self, parent=None):
 
@@ -67,7 +69,7 @@ class Model:
         # validado, ele será apenas ignorado
         return image_path.lower().endswith(('.png', '.jpg'))
 
-    def check_existence(self, frame_path):
+    def check_existence(self, frame):
 
         folders = ["Indolor", "Pouca dor", "Muita dor"]
 
@@ -78,7 +80,17 @@ class Model:
 
             for img_file in os.listdir(dirs):
 
-                if img_file in frame_path:
-                    print("image file", img_file)
-                    os.remove(f"{dirs}\{img_file}")
+                img_path = os.path.join(dirs, img_file)  # Caminho completo do arquivo
+
+                # Carrega a imagem salva da pasta
+                saved_image = cv2.imread(img_path)
+
+                if saved_image is None:
+                    print(f"Erro ao carregar {img_path}")
+                    continue
+
+                if saved_image.shape == frame.shape and np.array_equal(saved_image, frame):
+                    print(f"Imagem duplicada encontrada e removida: {img_path}")
+                    os.remove(img_path)  # Remove a imagem duplicada
+                    return True
 

@@ -88,6 +88,7 @@ class FrameCapture(QDialog):
         # Exibe o frame na QLabel chamando um método específico da classe.
         self.display_frame()
         # ------------------------------------------------------------------
+        self.frameIndex = 0
 
     # A função busca exibir o frame na QLabel criada anteriormente
     def display_frame(self):
@@ -145,6 +146,7 @@ class FrameCapture(QDialog):
     o local da imagem. Ambas as funções utilizam o event.pos() para obter o valor exato das
     coordenadas do ponteiro do mouse
     '''
+
     def start_selection(self, event):
         if event.button() == Qt.LeftButton:
             self.selection_start = event.pos()
@@ -215,11 +217,18 @@ class FrameCapture(QDialog):
             print("Erro: área selecionada inválida!")
             return
 
+        # ------------------------------------------------------
+        flag = model.check_existence(selected_area)
+
+        if not flag:
+            self.frameIndex += 1
+        # ------------------------------------------------------
+
         # Gerar o nome do arquivo
-        frame_path = model.frame_path_generator(self.fps, self.current_time, folder_name, self.video_name)
-        model.check_existence(frame_path)
+        frame_path = model.frame_path_generator(self.fps,
+                                                self.current_time,
+                                                folder_name,
+                                                self.video_name,
+                                                self.frameIndex)
 
-        # filename = f"{self.video_name}_frame_{self.current_time:.2f}_{label}.png"
-
-        # Salvar a imagem
         cv2.imwrite(frame_path, selected_area)
