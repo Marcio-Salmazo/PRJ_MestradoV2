@@ -4,6 +4,7 @@ from DataLoader import DataLoader
 import tkinter as tk
 from tkinter import filedialog
 
+
 """
 O tkinter é utilizado para exibir janela do explorer a fim de selecionar a pasta contendo o Dataset.
     * root = tk.Tk() - instância do tkinter
@@ -34,6 +35,11 @@ print(model)
 """
 O modelo é compilado e os dados de treinamento são exibidos
 """
-trainer = Trainer(model, train_data, val_data, epochs=30)
+trainer = Trainer(model, train_data, val_data, epochs=200)
 trainer.compile_and_train()
-trainer.plot_metrics()
+#trainer.plot_metrics()
+
+"""
+Os pesos do modelo são salvos:
+"""
+model.save_weights('eyes200weights_A.weights.h5')

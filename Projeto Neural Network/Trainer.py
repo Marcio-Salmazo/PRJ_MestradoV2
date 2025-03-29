@@ -1,4 +1,7 @@
 import matplotlib.pyplot as plt
+import tensorflow as tf
+from tensorflow.keras.callbacks import TensorBoard
+import os
 
 
 class Trainer:
@@ -42,10 +45,22 @@ class Trainer:
               o desempenho do modelo durante o treinamento.
         """
 
+        # Criar o diretório "logs/fit/" caso não exista
+        log_dir = "logs/fit/"
+        os.makedirs(log_dir, exist_ok=True)  # Garante que o diretório existe
+
+        # Criar um subdiretório único para cada execução
+        run_id = "run_" + str(len(os.listdir(log_dir)) + 1)
+        log_dir = os.path.join(log_dir, run_id)
+
+        # Definir o callback do TensorBoard
+        tensorboard_callback = TensorBoard(log_dir=log_dir, histogram_freq=1)
+
         self.history = self.model.fit(
             self.train_data,
             epochs=self.epochs,
-            validation_data=self.val_data
+            validation_data=self.val_data,
+            callbacks=[tensorboard_callback]
         )
 
         # obs:  O resultado do treinamento é armazenado em self.history,

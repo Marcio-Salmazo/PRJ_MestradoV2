@@ -1,6 +1,6 @@
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QScrollArea, QWidget
+from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QScrollArea, QWidget, QMessageBox
 from PyQt5.QtGui import QPixmap, QImage, QPainter, QPen
-from PyQt5.QtCore import Qt, QRect
+from PyQt5.QtCore import Qt, QRect, QPoint
 import cv2
 import numpy as np
 
@@ -10,7 +10,7 @@ from Model import Model
 class FrameCapture(QDialog):
 
     # Construtor da classe
-    def __init__(self, video_name, current_time, fps, frame):
+    def __init__(self, video_name, current_time, fps, frame, extension):
 
         # Realiza a chamada dos métodos da classe pai (QDialog)
         super().__init__()
@@ -73,6 +73,7 @@ class FrameCapture(QDialog):
         self.selection_end = None
         self.original_pixmap = None
         self.pixmap = None
+        self.frameResized = None
 
         # Habilita o rastreamento do mouse na imagem
         self.image_label.setMouseTracking(True)
@@ -86,47 +87,51 @@ class FrameCapture(QDialog):
 
         # ------------------------------------------------------------------
         # Exibe o frame na QLabel chamando um método específico da classe.
+        self.extension = extension
+        self.scale_factor = None
         self.display_frame()
         # ------------------------------------------------------------------
+        # Coordenadas
+        self.x1 = None
+        self.x2 = None
+        self.y1 = None
+        self.y2 = None
+
         self.frameIndex = 0
 
     # A função busca exibir o frame na QLabel criada anteriormente
     def display_frame(self):
-
-        # Verifica se o frame é válido antes de processá-lo
         if self.frame is None or not isinstance(self.frame, np.ndarray):
             print("Erro: frame inválido!")
             return
 
-        # Converte o frame do formato BGR para RGB e obtém suas dimensões (altura, largura e canais)
         frame = cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB)
-        height, width, channel = frame.shape
+
+        if self.extension and '.mov' in self.extension:
+            frame = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
+
+        T_height, T_width, T_channel = frame.shape
+        self.scale_factor = 0.7
+
+        self.frameResized = cv2.resize(frame, (int(T_width * self.scale_factor), int(T_height * self.scale_factor)),
+                                       interpolation=cv2.INTER_AREA)
+        height, width, channel = self.frameResized.shape
+
         bytes_per_line = 3 * width
+        qimage = QImage(self.frameResized.data, width, height, bytes_per_line, QImage.Format_RGB888)
 
-        # Converte o array numpy para um QImage, a fim de permitir a exibição
-        qimage = QImage(frame.data, width, height, bytes_per_line, QImage.Format_RGB888)
-
-        # Valida se o qimage foi criado corretamente
         if qimage.isNull():
             print("Erro: QImage não foi criado corretamente!")
             return
 
-        # Converte QImage em QPixmap, define-o na QLabel
         self.pixmap = QPixmap.fromImage(qimage)
-
-        # Valida se o pixmap foi criado corretamente
         if self.pixmap.isNull():
             print("Erro: QPixmap não foi criado corretamente!")
             return
 
-        # Define o pixmap na label prévia
         self.image_label.setPixmap(self.pixmap)
         self.image_label.setAlignment(Qt.AlignCenter)
-
-        # Salvar cópia da imagem original para desenhar o retângulo depois
         self.original_pixmap = self.pixmap.copy()
-
-        print("Imagem original salva com sucesso!")
 
     def eventFilter(self, obj, event):
 
@@ -150,67 +155,62 @@ class FrameCapture(QDialog):
     def start_selection(self, event):
         if event.button() == Qt.LeftButton:
             self.selection_start = event.pos()
+            print(self.selection_start)
 
     def end_selection(self, event):
         if event.button() == Qt.LeftButton and self.selection_start:
             self.selection_end = event.pos()
+            print(self.selection_end)
 
             # Ao final da seleção o retângulo é desenhado
             self.draw_selection()
 
     def draw_selection(self):
-
-        # Log para grantir que existe um pixmap e coordenadas de desenhos
-        print("pixmap: ", self.original_pixmap)
-        print("start: ", self.selection_start)
-        print("end: ", self.selection_end)
-
-        # Encerra a função caso o pixmap ou as coordenadas não estejam corretamente envenenadas
         if self.original_pixmap is None or self.selection_start is None or self.selection_end is None:
             return
 
-        # Criar uma cópia do Pixmap original
         temp_pixmap = self.original_pixmap.copy()
-        # Inicializa QPainter para desenhar na imagem copiada.
         painter = QPainter(temp_pixmap)
-        # Define a cor do objeto de desenho como vermelho (Qt.red).
         pen = QPen(Qt.red)
-        # Define a largura da linha do retângulo
         pen.setWidth(3)
-        # Associa as configurações do objeto de desenho (caneta) para o QPainter
         painter.setPen(pen)
 
-        # Definir o retângulo normalizado (caso o usuário selecione da direita para a esquerda)
-        rect = QRect(self.selection_start, self.selection_end).normalized()
-        # Finaliza a pintura e exibe a imagem modificada.
+        self.x1 = self.selection_start.x() - 30
+        self.y1 = self.selection_start.y()
+        self.x2 = self.selection_end.x() - 30
+        self.y2 = self.selection_end.y()
+
+        '''
+        x1, y1 = self.selection_start.x() - 30, self.selection_start.y()
+        x2, y2 = self.selection_end.x() - 30, self.selection_end.y()
+        '''
+
+        self.x1, self.x2 = min(self.x1, self.x2), max(self.x1, self.x2)
+        self.y1, self.y2 = min(self.y1, self.y2), max(self.y1, self.y2)
+
+        side_length = min(self.x2 - self.x1, self.y2 - self.y1)
+        self.x2 = self.x1 + side_length
+        self.y2 = self.y1 + side_length
+
+        self.selection_end = QPoint(self.x2, self.y2)
+        rect = QRect(self.x1, self.y1, side_length, side_length)
         painter.drawRect(rect)
         painter.end()
 
-        # Atualizar a label da imagem com o novo Pixmap com o retângulo desenhado
         self.image_label.setPixmap(temp_pixmap)
 
     def capture_frame(self, folder_name):
-
         model = Model()
         model.manage_dirs(folder_name)  # Criação das pastas
 
         # Valida se há ou não uma área de seleção bem como a existência de um frame antes de prosseguir a captura
-        if self.selection_start is None or self.selection_end is None or self.frame is None:
+        if self.selection_start is None or self.selection_end is None or self.frameResized is None:
             print("Erro: Nenhuma área selecionada para salvar.")
             return
 
-        # Obtém as coordenadas da seleção
-        x1, y1 = self.selection_start.x(), self.selection_start.y()
-        x2, y2 = self.selection_end.x(), self.selection_end.y()
-
-        # Garantir que os valores estão na ordem correta (esquerda para direita, cima para baixo)
-        # Dessa forma é levado em consideração qualquer orientação
-        x1, x2 = min(x1, x2), max(x1, x2)
-        y1, y2 = min(y1, y2), max(y1, y2)
-
         # Recortar a região selecionada na imagem original
-        # Aqui é armazenado a imagem do frame nos pontos x1 -> x2 e y1 -> y2
-        selected_area = self.frame[y1:y2, x1:x2]
+        color_correction = cv2.cvtColor(self.frameResized, cv2.COLOR_BGR2RGB)
+        selected_area = color_correction[self.y1:self.y2, self.x1:self.x2]
 
         # Valida se a área recortada possui um tamanho válido
         if selected_area.size == 0:
@@ -231,4 +231,10 @@ class FrameCapture(QDialog):
                                                 self.video_name,
                                                 self.frameIndex)
 
-        cv2.imwrite(frame_path, selected_area)
+        # Salvar a imagem e exibir mensagem ao usuário
+        success = cv2.imwrite(frame_path, selected_area)
+
+        if success:
+            QMessageBox.information(self, "Sucesso", f"Frame salvo em: {frame_path}")
+        else:
+            QMessageBox.critical(self, "Erro", "Falha ao salvar o frame.")

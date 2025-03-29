@@ -126,7 +126,6 @@ class VideoPlayer(QMainWindow):
         print("Versão do VLC:", vlc.libvlc_get_version())
 
         self.instance = vlc.Instance(f"--plugin-path={BASE_DIR}")  # cria uma instância do framework do VLC
-        print(self.instance)
         self.media_player = self.instance.media_player_new()  # cria um novo player de vídeo a partir da instância
         self.media_player.set_hwnd(int(self.video_widget.winId()))  # Vincula o player do VLC à janela criada
 
@@ -276,6 +275,7 @@ class VideoPlayer(QMainWindow):
 
         self.video_name = ""
         self.file_name = None
+        self.extension = None
 
         # self.event_manager = self.media_player.event_manager()
         # self.event_manager.event_attach(vlc.EventType.MediaPlayerEndReached, self.reload_video)
@@ -295,9 +295,9 @@ class VideoPlayer(QMainWindow):
         if self.file_name:
             self.start_video(self.file_name)
             self.video_name = os.path.basename(self.file_name)
+            self.extension = self.video_name[-4:]
+            print(self.extension)
             self.video_name = self.video_name[:-4]
-
-        # print("Valor de file name_name: ", self.file_name)
 
     def start_video(self, file_name):
 
@@ -377,7 +377,7 @@ class VideoPlayer(QMainWindow):
         fps = self.media_player.get_fps()  # taxa de quadros do vídeo
         frame = self.get_frame()
 
-        capture = FrameCapture(self.video_name, current_time, fps, frame)
+        capture = FrameCapture(self.video_name, current_time, fps, frame, self.extension)
         capture.exec_()
 
     def get_frame(self):

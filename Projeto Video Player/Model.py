@@ -40,9 +40,10 @@ class Model:
         # "Abrir Vídeo" - Título da janela de seleção de arquivos.
         # "" - Diretório inicial (se vazio, abre no último local acessado).
         # "Arquivos de Vídeo (*.mp4 *.avi *.mkv)" - Filtro para exibir apenas arquivos de vídeo.
-        
-        #INTERFACE
-        file_name, _ = QFileDialog.getOpenFileName(parent, "Abrir Vídeo", "", "Arquivos de Vídeo (*.mp4 *.avi *.mkv)")
+
+        # INTERFACE
+        file_name, _ = QFileDialog.getOpenFileName(parent, "Abrir Vídeo", "", "Arquivos de Vídeo (*.mp4 *.avi *.mkv "
+                                                                              "*.mov)")
 
         return file_name
 
@@ -93,4 +94,3 @@ class Model:
                     print(f"Imagem duplicada encontrada e removida: {img_path}")
                     os.remove(img_path)  # Remove a imagem duplicada
                     return True
-
