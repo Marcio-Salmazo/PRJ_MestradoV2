@@ -42,4 +42,4 @@ trainer.compile_and_train()
 """
 Os pesos do modelo são salvos:
 """
-model.save_weights('eyes200weights_A.weights.h5')
+model.save_weights('mouth200weights_A.weights.h5')
