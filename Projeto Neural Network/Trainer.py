@@ -20,7 +20,7 @@ class Trainer:
         self.epochs = epochs
         self.history = None
 
-    def compile_and_train(self):
+    def compile_and_train(self, logName):
         """
         Função responsável por compilar o modelo e dar inicio ao treinamento
         O método .compile() define as configurações do modelo antes do treinamento.
@@ -50,7 +50,7 @@ class Trainer:
         os.makedirs(log_dir, exist_ok=True)  # Garante que o diretório existe
 
         # Criar um subdiretório único para cada execução
-        run_id = "run_" + str(len(os.listdir(log_dir)) + 1)
+        run_id = logName + '_run_' + str(len(os.listdir(log_dir)) + 1)
         log_dir = os.path.join(log_dir, run_id)
 
         # Definir o callback do TensorBoard
