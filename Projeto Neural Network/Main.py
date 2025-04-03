@@ -35,11 +35,11 @@ print(model)
 """
 O modelo é compilado e os dados de treinamento são exibidos
 """
-trainer = Trainer(model, train_data, val_data, epochs=200)
+trainer = Trainer(model, train_data, val_data, epochs=50)
 trainer.compile_and_train()
 #trainer.plot_metrics()
 
 """
 Os pesos do modelo são salvos:
 """
-model.save_weights('mouth200weights_A.weights.h5')
+model.save_weights('mouth50weights_70_30.weights.h5')

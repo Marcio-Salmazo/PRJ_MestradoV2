@@ -72,7 +72,7 @@ class Model:
 
     def check_existence(self, frame):
 
-        folders = ["Indolor", "Pouca dor", "Muita dor"]
+        folders = ["Indolor", "Pouca dor", "Muita dor", "Incerto"]
 
         for dirs in folders:
 

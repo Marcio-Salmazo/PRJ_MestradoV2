@@ -65,7 +65,7 @@ class Trainer:
 
         # obs:  O resultado do treinamento é armazenado em self.history,
         # que contém os valores da acurácia e da perda ao longo das épocas.
-
+    '''
     def plot_metrics(self):
         """
         Essa função gera gráficos para visualizar o desempenho do treinamento.
@@ -89,3 +89,4 @@ class Trainer:
         plt.legend()
 
         plt.show()
+    '''

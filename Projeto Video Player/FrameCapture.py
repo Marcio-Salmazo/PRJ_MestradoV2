@@ -52,10 +52,12 @@ class FrameCapture(QDialog):
         self.save_ind = QPushButton("Salvar frame como 'Indolor'")
         self.save_pd = QPushButton("Salvar frame como 'Pouca dor'")
         self.save_md = QPushButton("Salvar frame como 'Muita dor'")
+        self.save_inc = QPushButton("Salvar frame como 'Incerto'")
 
         self.hor_layout.addWidget(self.save_ind)
         self.hor_layout.addWidget(self.save_pd)
         self.hor_layout.addWidget(self.save_md)
+        self.hor_layout.addWidget(self.save_inc)
         self.layout.addLayout(self.hor_layout)
 
         # Cria um botão chamado "Concluir", que fecha a janela ao ser clicado.
@@ -84,6 +86,7 @@ class FrameCapture(QDialog):
         self.save_ind.clicked.connect(lambda: self.capture_frame("Indolor"))
         self.save_pd.clicked.connect(lambda: self.capture_frame("Pouca dor"))
         self.save_md.clicked.connect(lambda: self.capture_frame("Muita dor"))
+        self.save_inc.clicked.connect(lambda: self.capture_frame("Incerto"))
 
         # ------------------------------------------------------------------
         # Exibe o frame na QLabel chamando um método específico da classe.

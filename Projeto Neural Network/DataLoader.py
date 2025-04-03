@@ -3,7 +3,7 @@ from keras.src.legacy.preprocessing.image import ImageDataGenerator
 
 class DataLoader:
 
-    def __init__(self, dataset_path, img_size=(128, 128), batch_size=32, val_split=0.1):
+    def __init__(self, dataset_path, img_size=(128, 128), batch_size=32, val_split=0.3):
         """
         Classe responsável pelo carregamento do dataset.
         parametro dataset_path: Caminho para a pasta que contém as imagens organizadas por classe.
