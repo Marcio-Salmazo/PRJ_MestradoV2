@@ -165,47 +165,74 @@ class FrameCapture(QDialog):
             self.selecting = False  # Flag que indica se a seleção terminou
             self.draw_selection()  # Chama 'draw selection' para exibir a área de seleção
 
+    # Função responsável por exibir a seleção em cima do pixmap
     def draw_selection(self):
+
+        # Valida as condições necessárias para prosseguir com o desenho de seleção
         if self.original_pixmap is None or self.selection_start is None or self.selection_end is None:
+            print("Pixmap ou área de seleção inválidos")
             return
 
+        # Cópia do pixmap, a fim de evitar modificações na instãncia original
         temp_pixmap = self.original_pixmap.copy()
+        # Cria um objeto QPainter, que é a ferramenta do PyQt usada para desenhar sobre widgets ou imagens.
         painter = QPainter(temp_pixmap)
+        # Cria um objeto QPen, que define o "pincel" com o qual a seleção será desenhada.
         pen = QPen(Qt.red)
+        # Define a espessura da linha como 3 pixels
         pen.setWidth(3)
+        # Atribui a caneta (pen) ao objeto painter.
         painter.setPen(pen)
 
+        # Atribui as coordenadas x e y, de acordo com o retorno das funções selection_start e selection_end
+        # x1 obtém um offset (-30) a fim de manter a precisão da seleção em razão do fator de escala
         self.x1 = self.selection_start.x() - 30
         self.y1 = self.selection_start.y()
         self.x2 = self.selection_end.x()
         self.y2 = self.selection_end.y()
 
+        # As coordenadas são re-organizadas a fim de levar em consideração seleções invertidas
         self.x1, self.x2 = min(self.x1, self.x2), max(self.x1, self.x2)
         self.y1, self.y2 = min(self.y1, self.y2), max(self.y1, self.y2)
 
+        # Mantém a seleção quadrada, independente da posição do mouse
         side_length = min(self.x2 - self.x1, self.y2 - self.y1)
         self.x2 = self.x1 + side_length
         self.y2 = self.y1 + side_length
 
+        # Cria um objeto QPoint, que representa um ponto (x, y) no espaço 2D da interface gráfica.
+        # Esse QPoint é salvo como self.selection_end para armazenar a posição final da seleção
         self.selection_end = QPoint(self.x2, self.y2)
+        # Cria um retângulo (QRect), que é o que será desenhado na tela
+        # side_length representa a largura e altura do retângulo. Usar o mesmo valor para ambos
+        # significa que um quadrado será desenhado.
         rect = QRect(self.x1, self.y1, side_length, side_length)
+        # Ao chamar drawRect(rect), o PyQt desenha esse retângulo sobre o QPixmap,
+        # QImage ou widget que está sendo manipulado.
         painter.drawRect(rect)
+        # Encerra o processo de desenho.
         painter.end()
 
+        # Atualiza a imagem do label na área de rolagem pela nova imagem desenhada
         self.image_label.setPixmap(temp_pixmap)
 
+    # Função responsável por capturar e salvar a área de seleção definida na imagem
+    # bem como salvar dados para o processo de augmentation futuro
     def capture_frame(self, folder_name):
 
+        # Cria uma instância da classe Model, a fim de utilizar
+        # suas funções. Neste primeiro momento a pasta da categoria
+        # selecionada na janela será criada para alocar os frames
         model = Model()
         model.manage_dirs(folder_name)  # Criação das pastas
 
-        # ----------------------------------------
-        # LEVAR ESSA VALIDAÇÃO PARA O MODEL
+        # Verificar se a pasta "Augmentation" existe na pasta raiz. Em caso negativo, a função
+        # model.Augmentation_folder_structure() é chamada para criar a estrutura de pastas voltadas
+        # para o processo de Augmentation. (LEVAR ESTE TRECHO PARA O MODEL)
         if not os.path.exists("Augmentation"):
             model.Augmentation_folder_structure()
         else:
             print("Estrutura de pastas já criada")
-        # ----------------------------------------
 
         # Valida se há ou não uma área de seleção bem como a existência de um frame antes de prosseguir a captura
         if self.selection_start is None or self.selection_end is None or self.frameResized is None:
@@ -221,14 +248,18 @@ class FrameCapture(QDialog):
             print("Erro: área selecionada inválida!")
             return
 
-        # ------------------------------------------------------
+        # Cria uma flag para avaliar se a área do frame selecionada na imagem já foi previamente salva
+        # em algumas das possíveis categorias. Caso alguma imagem duplicada seja encontrada, ela é removida
+        # salvando apenas o frame atual na categoria atual selecionada
         flag = model.check_existence(selected_area)
-
+        # Caso o frame não seja encontrado e duplicadom, o index é incrementado
+        # O frameIndex, define o valor do subframe (trecho da imagem) recortado
+        # ex: frame1_recorte1, frame1_recorte2, frame1_recorte3, etc.
         if not flag:
             self.frameIndex += 1
-        # ------------------------------------------------------
 
-        # Gerar o nome do arquivo
+        # Gerar o caminho do frame a ser salvo, levando em consideração o numero do frme,
+        # nome da pasta, nome do vídeo e índice do recorte
         frame_path = model.frame_path_generator(self.fps,
                                                 self.current_time,
                                                 folder_name,
@@ -238,21 +269,32 @@ class FrameCapture(QDialog):
         # Salvar a imagem e exibir mensagem ao usuário
         success = cv2.imwrite(frame_path, selected_area)
 
+        # Valida se o salvamento foi realizado com sucesso
         if success:
 
+            # Calcula o valor do frame, baseado no tempo atual e na taxa de quadros
             frame_number = int((self.current_time / 1000) * self.fps)
 
+            # O 'for' busca obter os 10 frames anteriores e posteriores
+            # ao frame atual, afim de salvar seus dados para o processo
+            # de Augmentation futuro
             for i in range(-10, 11):
 
                 if frame_number + i >= 1 and i != 0:
-                    aug_data = model.Augmentation_data_structure(folder_name,
-                                                                 frame_number + i,
+                    # Retorna a estrutura dos dados em formato JSON
+                    aug_data = model.Augmentation_data_structure(frame_number + i,
                                                                  self.x1,
                                                                  self.x2,
                                                                  self.y1,
                                                                  self.y2,
                                                                  self.video_name)
 
+                    # Valida se o novo registro já existe ou não em alguma das outras pastas
+                    # O registro é excluido em caso de ser duplicado
+                    model.Augmentation_data_checker(aug_data)
+
+                    # Salva a estrutura JSON no arquivo gerado na pasta Augmentation
                     model.Augmentation_data_save(aug_data, folder_name)
 
+            # Mensagem de confirmação da operação
             QMessageBox.information(self, "Sucesso", f"Frame salvo em: {frame_path}")

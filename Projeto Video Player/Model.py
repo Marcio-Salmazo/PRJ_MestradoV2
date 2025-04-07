@@ -130,11 +130,10 @@ class Model:
             with open(self.json_file_path, "w") as file:
                 pass
 
-    def Augmentation_data_structure(self, folder_name, frame_number, x1, x2, y1, y2, video_name):
+    def Augmentation_data_structure(self, frame_number, x1, x2, y1, y2, video_name):
 
         dataStructure = {
             "nome do video": video_name,
-            "categoria": folder_name,
             "frame": frame_number,
             "coordenadas": {"x1": x1,
                             "x2": x2,
@@ -163,3 +162,31 @@ class Model:
                 json.dump(dados, f, indent=4, ensure_ascii=False)
         else:
             print("Dados duplicados ignorados")
+
+    def Augmentation_data_checker(self, new_data):
+
+        folders = ["Indolor", "Pouca dor", "Muita dor", "Incerto"]
+
+        for dirs in folders:
+
+            if not os.path.exists(dirs):
+                continue
+
+            json_path = os.path.join("Augmentation", dirs, f"Augmentation_{dirs}.json")
+
+            if os.path.exists(json_path) and os.path.getsize(json_path) > 0:
+                with open(json_path, "r", encoding="utf-8") as file:
+                    dados = json.load(file)
+            else:
+                print("Arquivo não existe ou está vazio, inicializando lista de dados como lista vazia")
+                dados = []  # Começa com lista vazia se o arquivo está vazio ou não existe
+
+            # 2. Verifica se o registro completo já está lá
+            if new_data in dados:
+                print("Registro já existe, será removido.")
+                dados.remove(new_data)
+
+            # 3. Salva de volta
+            with open(json_path, "w", encoding="utf-8") as file:
+                json.dump(dados, file, indent=4, ensure_ascii=False)
+
