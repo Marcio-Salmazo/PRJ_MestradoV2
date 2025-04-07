@@ -37,10 +37,10 @@ O modelo é compilado e os dados de treinamento são exibidos
 """
 # --------
 # --------
-fileName = 'eyes_50ep_train70'
+fileName = 'eyes_250ep_train70'
 # --------
 # --------
-trainer = Trainer(model, train_data, val_data, epochs=200)
+trainer = Trainer(model, train_data, val_data, epochs=250)
 trainer.compile_and_train(fileName)
 
 """

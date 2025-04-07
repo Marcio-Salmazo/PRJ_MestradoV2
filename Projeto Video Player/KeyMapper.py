@@ -67,33 +67,6 @@ class KeyMapper(QDialog):
         self.input3_layout.addWidget(self.input3)
         self.main_layout.addLayout(self.input3_layout)
 
-        '''self.input4_layout = QHBoxLayout()
-        self.input4_label = QLabel("Salvar como 'Indolor':")
-        self.input4 = QLineEdit()
-        self.input4.setMaxLength(1)
-        self.input4.setAlignment(Qt.AlignCenter)
-        self.input4_layout.addWidget(self.input4_label)
-        self.input4_layout.addWidget(self.input4)
-        self.main_layout.addLayout(self.input4_layout)
-
-        self.input5_layout = QHBoxLayout()
-        self.input5_label = QLabel("Salvar como 'Pouca dor':")
-        self.input5 = QLineEdit()
-        self.input5.setMaxLength(1)
-        self.input5.setAlignment(Qt.AlignCenter)
-        self.input5_layout.addWidget(self.input5_label)
-        self.input5_layout.addWidget(self.input5)
-        self.main_layout.addLayout(self.input5_layout)
-
-        self.input6_layout = QHBoxLayout()
-        self.input6_label = QLabel("Salvar como 'Muita dor':")
-        self.input6 = QLineEdit()
-        self.input6.setMaxLength(1)
-        self.input6.setAlignment(Qt.AlignCenter)
-        self.input6_layout.addWidget(self.input6_label)
-        self.input6_layout.addWidget(self.input6)
-        self.main_layout.addLayout(self.input6_layout)'''
-
         self.input7_layout = QHBoxLayout()
         self.input7_label = QLabel("Sair do programa:")
         self.input7 = QLineEdit()

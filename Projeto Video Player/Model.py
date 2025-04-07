@@ -1,19 +1,15 @@
 import os
-
+import json
 import cv2
 import numpy as np
 from PyQt5.QtWidgets import QFileDialog
-
 
 class Model:
 
     def __init__(self):
 
-        var = 0
-        # self.fps = None
-        # self.current_time = None
-        # self.folder_name = None
-        # self.video_name = None
+        self.json_file_path = None
+
 
     def manage_dirs(self, folder_name):
 
@@ -94,3 +90,76 @@ class Model:
                     print(f"Imagem duplicada encontrada e removida: {img_path}")
                     os.remove(img_path)  # Remove a imagem duplicada
                     return True
+
+    # ------------------------------------------------------------------------------------------------------------------
+    #    FUNÇÕES REFERENTES AO TRATAMENTO DE DADOS DE AUGMENTATION
+    # ------------------------------------------------------------------------------------------------------------------
+
+    def Augmentation_folder_structure(self):
+
+        # A função organiza a estrutura de subpastas
+        # cada uma conterá um arquivo com os dados dos frames
+        # à serem salvos para o aumento de dados
+        aug = 'Augmentation'
+        os.makedirs(aug, exist_ok=True)
+
+        subfolders = ["Indolor", "Pouca dor", "Muita dor", "Incerto"]
+        for sub in subfolders:
+            sub_path = os.path.join(aug, sub)
+            os.makedirs(sub_path, exist_ok=True)
+
+            '''
+            obs: A forma como o os.path.join opera é unindo o 
+            caminho pré-formado do primeiro argumento com o nome
+            da pasta ou arquivo do segundo parâmetro, completando
+            o caminho até determinado documento
+            '''
+            json_file_name = f"Augmentation_{sub}.json"
+            self.json_file_path = os.path.join(sub_path, json_file_name)
+
+            '''
+            obs2: A função with open(txt_file_name, "w") as file
+            cria o arquivo txt definido pelo caminho gerado em 
+            txt_file_path e permite realizar alguma operação inicial
+            de acordo com o segundo parâmetro, sendo
+                'w' - write
+                'r' - read   
+            como nada deve ser escrito por enquanto, utiliza-se o pass
+            para sair da função 
+            '''
+            with open(self.json_file_path, "w") as file:
+                pass
+
+    def Augmentation_data_structure(self, folder_name, frame_number, x1, x2, y1, y2, video_name):
+
+        dataStructure = {
+            "nome do video": video_name,
+            "categoria": folder_name,
+            "frame": frame_number,
+            "coordenadas": {"x1": x1,
+                            "x2": x2,
+                            "y1": y1,
+                            "y2": y2}
+        }
+
+        return dataStructure
+
+    def Augmentation_data_save(self, new_data, folder_name):
+
+        json_path = os.path.join("Augmentation", folder_name, f"Augmentation_{folder_name}.json")
+
+        if os.path.exists(json_path) and os.path.getsize(json_path) > 0:
+            with open(json_path, "r", encoding="utf-8") as file:
+                dados = json.load(file)
+        else:
+            print("Arquivo não existe ou está vazio, inicializando lista de dados como lista vazia")
+            dados = []  # Começa com lista vazia se o arquivo está vazio ou não existe
+
+        if new_data not in dados:
+
+            dados.append(new_data)
+
+            with open(json_path, "w", encoding="utf-8") as f:
+                json.dump(dados, f, indent=4, ensure_ascii=False)
+        else:
+            print("Dados duplicados ignorados")
