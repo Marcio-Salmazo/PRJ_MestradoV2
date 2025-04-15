@@ -287,7 +287,8 @@ class FrameCapture(QDialog):
                                                                  self.x2,
                                                                  self.y1,
                                                                  self.y2,
-                                                                 self.video_name)
+                                                                 self.video_name,
+                                                                 frame_path)
 
                     # Valida se o novo registro já existe ou não em alguma das outras pastas
                     # O registro é excluido em caso de ser duplicado

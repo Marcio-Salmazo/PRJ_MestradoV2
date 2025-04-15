@@ -187,3 +187,6 @@ class SaveMenu(QDialog):
 
         except Exception as e:  # Em caso de erro
             print(f"Erro ao excluir {img_path}: {e}")
+
+        # Função para deletar os dados JSON de um frame excluido
+        model.Augmentation_data_delete(img_path)
