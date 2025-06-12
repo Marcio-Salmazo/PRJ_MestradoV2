@@ -33,7 +33,7 @@ class ModelCreator:
 
     # Construção da arquitetura do ViT
     # Recebe como parâmetros os subsets de treino e validação
-    def vit_classifier(self, train_generator, validation_generator, eps):
+    def vit_classifier(self):
         # Aqui é definida a entrada do modelo, criando um placeholder para imagens com a
         # forma especificada por self.input_shape
         inputs = layers.Input(shape=self.input_shape)
@@ -101,7 +101,8 @@ class ModelCreator:
         model = tf.keras.Model(inputs=inputs, outputs=logits)
 
         # Realiza a chamada da função para compilar e treinar o modelo
-        self.vit_compile_train(model, train_generator, validation_generator, eps)
+        # self.vit_compile_train(model, train_generator, validation_generator, eps)
+        return model
 
     def vit_compile_train(self, model, train_generator, validation_generator, eps):
         # Esse metodo prepara o modelo para o treinamento.
@@ -148,3 +149,6 @@ class ModelCreator:
             epochs=eps,
             callbacks=[tensorboard_callback]
         )
+
+        # Salvar os pesos após o treinamento
+        model.save_weights('vit_eyes.weights.h5')
